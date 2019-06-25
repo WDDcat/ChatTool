@@ -12,6 +12,12 @@ public class ConnectionKeeper {
     public void add(Socket s) {
         MainServer.connects++;
         clientList.addLast(new ConnectedClient(s, this));
+        cp.runCommand((ConnectedClient)clientList.get(0), "/users");
+//        for(int i = 0; i < clientList.size(); i++)
+//        	cp.runCommand((ConnectedClient)users.removeFirst(), "/users");
+//            msg += "*" + ((ConnectedClient)(users.removeFirst())).getNick() + "<br>";
+//        cc.sendMessage(msg);
+//        cp.runCommand(cc, "/users");
     }
     public void remove(ConnectedClient cc) {
         clientList.remove(cc);

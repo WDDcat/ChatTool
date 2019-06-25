@@ -12,6 +12,8 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
     JTextField txtHost, txtPort, msgWindow, txtNick;
     JButton buttonConnect, buttonSend;
     JScrollPane sc;
+    JList ls;
+    Vector users;
     ClientKernel ck;
     ClientHistory historyWindow;
     private String lastMsg = "";
@@ -44,6 +46,7 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
         txtPort.addFocusListener(this);
         buttonConnect.addKeyListener(this);
         this.add(northPanel, BorderLayout.NORTH);
+        
         //创建Sourth
         southPanel = new JPanel();
         southPanel.add(msgWindow = new JTextField(20));
@@ -51,13 +54,27 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
         buttonSend.addActionListener(this);
         msgWindow.addKeyListener(this);
         add(southPanel, BorderLayout.SOUTH);
+        
         //创建Center
+        centerPanel = new JPanel(new GridLayout(0,2));
+        users = new Vector();
+        ls = new JList(users);
+        ls.setBorder(BorderFactory.createTitledBorder("Users"));
+        centerPanel.add(ls);
         historyWindow = new ClientHistory();
         sc = new JScrollPane(historyWindow);
         sc.setAutoscrolls(true);
-        this.add(sc, BorderLayout.CENTER);
+        centerPanel.add(sc);
+        this.add(centerPanel, BorderLayout.CENTER);
+        
+        
     }
-   public static void main(String args[]) {
+    
+    public void refreshUsers(String u[]) {
+    	users.clear();
+    	users.add("Chat Server");
+    }
+    public static void main(String args[]) {
         ChatClient client = new ChatClient();
         client.setTitle(client.appName);
         client.setSize(450, 500);
@@ -84,8 +101,9 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
     }
     private void send() {
         String toSend = msgWindow.getText();
+        Message msg = new Message(toSend, ck.getLocalPort(), users.get(ls.getLeadSelectionIndex()).toString());
         ck.sendMessage(toSend);
-        lastMsg = "" + toSend;
+        lastMsg = toSend;
         msgWindow.setText("");
     }
     public void keyPressed(KeyEvent e) {
@@ -136,5 +154,6 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
             setText("");
         }
     }
+    
 }
 
