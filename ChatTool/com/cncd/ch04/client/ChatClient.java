@@ -8,15 +8,17 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
     public static final String serverText = "127.0.0.1";
     public static final String portText = "3500";
     public static final String nickText = "YourName";
+    JDialog d;
     JPanel northPanel, southPanel, centerPanel;
     JTextField txtHost, txtPort, msgWindow, txtNick;
-    JButton buttonConnect, buttonSend;
+    JButton buttonConnect, buttonSend, buttonAllUsers, buttonFriends,buttonAddFriend;
     JScrollPane sc;
     JList<String> ls;
     Vector<String> users;
     ClientKernel ck;
     ClientHistory historyWindow;
     private String lastMsg = "";
+    public int flag = 0;
     /** Creates a new instance of Class */
     public ChatClient() {
         uiInit();
@@ -33,11 +35,14 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
         northPanel.add(txtPort = new JTextField(ChatClient.portText));
         northPanel.add(new JLabel("Nick:"));
         northPanel.add(txtNick = new JTextField(ChatClient.nickText));
-        northPanel.add(new JLabel(""));
-        northPanel.add(new JLabel(""));
-        northPanel.add(new JLabel(""));
+        northPanel.add(buttonAllUsers = new JButton("All Users"));
+        northPanel.add(buttonAddFriend = new JButton("ADD"));
+        northPanel.add(buttonFriends = new JButton("Friends"));
         northPanel.add(buttonConnect = new JButton("Connect"));
         buttonConnect.addActionListener(this);
+        buttonAllUsers.addActionListener(this);
+        buttonFriends.addActionListener(this);
+        buttonAddFriend.addActionListener(this);
         txtHost.addKeyListener(this);
         txtHost.addFocusListener(this);
         txtNick.addFocusListener(this);
@@ -69,9 +74,17 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
         sc.setAutoscrolls(true);
         centerPanel.add(sc);
         this.add(centerPanel, BorderLayout.CENTER);
+        
+//        //´´½¨µ¯´°
+//        d = new JDialog();
     }
-    
+    public void addFriend() {
+    	if(!ck.nick.equals(users.get(ls.getLeadSelectionIndex()).toString())) {
+    		ck.addFriend(users.get(ls.getLeadSelectionIndex()).toString());
+        }
+    }
     public void refreshUsers(ArrayList<String> u) {
+    	if(this.flag == 0) {
     	users.clear();
     	users.add("ChatServer");
     	for(int i = 0; i < u.size(); i++) {
@@ -81,6 +94,24 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
     	ls.revalidate();
     	ls.repaint();
     	ls.setSelectedIndex(0); 
+    	}
+    	else {
+    	users.clear();
+    	users.add("Online Friend");
+    	for(int i = 0; i < ck.friends.size(); i++) {
+        	if(ck.checkFriendOnline(ck.friends.get(i),u))users.add(ck.friends.get(i));
+//        	System.out.println(ck.friends.get(i));
+        }
+    	users.add("Offline Friend");
+    	for(int i = 0; i < ck.friends.size(); i++) {
+        	if(!ck.checkFriendOnline(ck.friends.get(i),u))users.add(ck.friends.get(i));
+        }
+//    	for(int i=0;i<users.size();i++) System.out.println(users.get(i));
+    	ls.setListData(users);
+        ls.revalidate();
+        ls.repaint();
+        ls.setSelectedIndex(0);
+    	}
     }
     public static void main(String args[]) {
         ChatClient client = new ChatClient();
@@ -123,6 +154,11 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
         }
         msgWindow.setText("");
     }
+    public void sendFriend() {
+    	String FriendNick = users.get(ls.getLeadSelectionIndex()).toString();
+    	String msg = "friendApply:" + FriendNick;
+    	ck.sendMessage(msg);
+    }
     public void keyPressed(KeyEvent e) {
     }
     public void keyReleased(KeyEvent e) {
@@ -139,12 +175,17 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
     public void actionPerformed(ActionEvent e) {
         if(e.getSource()==buttonConnect) connect();
         if(e.getSource()==buttonSend) send();
+        if(e.getSource()==buttonAllUsers) {this.flag = 0;
+        this.refreshUsers(ck.AllUsers);}
+        if(e.getSource()==buttonAddFriend) {addFriend();
+        sendFriend();} 
+        if(e.getSource()==buttonFriends) {this.flag = 1;
+        this.refreshUsers(ck.AllUsers);};
     }
     public void focusGained(FocusEvent e) {
         if(e.getSource()==txtHost && txtHost.getText().equals(ChatClient.serverText)) txtHost.setText("");
         if(e.getSource()==txtPort && txtPort.getText().equals(ChatClient.portText)) txtPort.setText("");
         if(e.getSource()==txtNick && txtNick.getText().equals(ChatClient.nickText)) txtNick.setText("");
-        if(e.getSource()==ls) sc.removeAll();
     }
     public void focusLost(FocusEvent e) {
        if(e.getSource()==txtPort && txtPort.getText().equals("")) txtPort.setText(ChatClient.portText);

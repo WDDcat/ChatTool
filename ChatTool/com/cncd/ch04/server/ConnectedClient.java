@@ -96,8 +96,18 @@ class ServerMsgSender extends Thread {
                 }
                 if(num != cc.getConnectionKeeper().users().size()) flag = 0;
                 if(flag < 3) {
+//                	String mm;
                 	cc.runCommand("" + ClientKernel.COMMAND + "users");
                 	flag++;
+//                	for(int i=0;i<cc.getConnectionKeeper().friends.size();i++) {
+//                		for(int j=0;j<cc.getConnectionKeeper().friends.get(i).friend.size();j++) {
+//                			mm = cc.getConnectionKeeper().friends.get(i).nick + ":friendApply:" + cc.getConnectionKeeper().friends.get(i).friend.get(j);
+//                			for(int k=0;)
+//                		}
+//                	}
+                }
+                if(flag == 2) {
+                	cc.getConnectionKeeper().sendFriend((ConnectedClient)cc.getConnectionKeeper().users().getLast());
                 }
                 num = cc.getConnectionKeeper().users().size();
                 sleep(10);
@@ -159,7 +169,12 @@ class ServerMsgListener extends Thread {
                     }
                 }
                 if(didRun) {
-                    String toSend = "" + cc.nick + ":" + strBuff.toString();
+                	String toSend = "" + cc.nick + ":" + strBuff.toString();
+                	String[] ff = toSend.toString().split(":");
+                	if(ff.length == 3 && ff[1].equals("friendApply")) {
+                		cc.getConnectionKeeper().addFriends(ff[0],ff[2]);
+                		cc.getConnectionKeeper().addFriends(ff[2],ff[0]);
+                	}
                     if(cc.printMsg) System.out.println("MsgListenet.run Sending msg: " + toSend);
                     if(!isCommand) cc.broadcastMessage(toSend);
                     else cc.runCommand(strBuff.toString());

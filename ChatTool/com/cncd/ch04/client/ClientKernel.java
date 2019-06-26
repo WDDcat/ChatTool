@@ -18,8 +18,12 @@ public class ClientKernel {
     public boolean printMsg = true;
     private ClientMsgSender cms;
     private ClientMsgListener cml;
+    public ArrayList<String> friends;
+    public ArrayList<String> AllUsers;
     /** Creates a new instance of ClientKernel */
     public ClientKernel(String server, int port) {
+    	this.friends = new ArrayList<String>();
+    	this.AllUsers = new ArrayList<String>();
         this.port = port;
         serverAd = server;
         clients = new LinkedList();
@@ -28,6 +32,22 @@ public class ClientKernel {
             cms = new ClientMsgSender(this, sock);
             cml = new ClientMsgListener(this, sock);
         }
+    }
+    public int addFriend(String s) {
+    	for(int i=0; i<this.friends.size();i++) {
+    		if(this.friends.get(i).equals(s))
+    			return 0;
+    	}
+    	this.friends.add(s);
+    	return 1;
+//    	System.out.println("susccefull");
+    }
+    public boolean checkFriendOnline(String s,ArrayList<String> u) {
+    	for(int j=0;j<u.size();j++) {
+    		if(s.equals(u.get(j)))
+    			return true;
+    	}
+    	return false;
     }
     public void connect() {
         try {
@@ -163,14 +183,21 @@ class ClientMsgListener extends Thread{
                     while( (c=dataIn.read()) != ClientKernel.MSGENDCHAR) {
                         strBuff.append((char)c);
                     }
+                    String friendApp = strBuff.toString();
+                    String[] a = friendApp.split(":");
+                    if(a.length == 3 && a[1].equals("friendApply") && a[2].equals(ck.nick)) {
+                    	ck.addFriend(a[0]);
+                    }
                     if(strBuff.toString().charAt(0) == '/' && strBuff.toString().substring(1,8).equals("refresh")) {
                     	ArrayList<String> list = new ArrayList<>();
+                    	ck.AllUsers.clear();
                     	String buffer = strBuff.toString().substring(8);
 //                    	System.out.println("buffer=" + buffer);
                     	String name = "";
                     	while(buffer.length() > 0) {
                     		if(buffer.charAt(0) == ' ') {
                     			list.add(name);
+                    			ck.AllUsers.add(name);
 //                            	System.out.println("list.add\"" + name + "\"\n");
                     			name = "";
                     		}
