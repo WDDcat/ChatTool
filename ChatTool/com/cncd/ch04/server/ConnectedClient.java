@@ -2,6 +2,8 @@ package com.cncd.ch04.server;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+
+import com.cncd.ch04.client.ClientKernel;
 public class ConnectedClient {
     private ConnectionKeeper ck;
     public String nick;
@@ -63,6 +65,8 @@ public class ConnectedClient {
     }
 }
 class ServerMsgSender extends Thread {
+	private int num = 0;
+	private int flag = 0;
     private Socket sock;
     private LinkedList msgList;
     private ConnectedClient cc;
@@ -90,6 +94,12 @@ class ServerMsgSender extends Thread {
                     if(cc.printMsg) System.out.println("MsgSender.run: Sending: " + toSend);
                     sleep(10);
                 }
+                if(num != cc.getConnectionKeeper().users().size()) flag = 0;
+                if(flag < 3) {
+                	cc.runCommand("" + ClientKernel.COMMAND + "users");
+                	flag++;
+                }
+                num = cc.getConnectionKeeper().users().size();
                 sleep(10);
             }
         } catch(Exception e) {

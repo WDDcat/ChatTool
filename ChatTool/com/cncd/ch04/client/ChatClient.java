@@ -12,8 +12,8 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
     JTextField txtHost, txtPort, msgWindow, txtNick;
     JButton buttonConnect, buttonSend;
     JScrollPane sc;
-    JList ls;
-    Vector users;
+    JList<String> ls;
+    Vector<String> users;
     ClientKernel ck;
     ClientHistory historyWindow;
     private String lastMsg = "";
@@ -57,7 +57,7 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
         
         //´´½¨Center
         centerPanel = new JPanel(new GridLayout(0,2));
-        users = new Vector();
+        users = new Vector<>();
         ls = new JList(users);
         ls.setBorder(BorderFactory.createTitledBorder("Users"));
         centerPanel.add(ls);
@@ -66,13 +66,20 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
         sc.setAutoscrolls(true);
         centerPanel.add(sc);
         this.add(centerPanel, BorderLayout.CENTER);
-        
-        
+        users.add("Chat Server");
+        ls.setSelectedIndex(0); 
     }
     
-    public void refreshUsers(String u[]) {
+    public void refreshUsers(ArrayList<String> u) {
     	users.clear();
     	users.add("Chat Server");
+    	for(int i = 0; i < u.size(); i++) {
+    		users.add(u.get(i));
+    	}
+    	ls.setListData(users);
+    	ls.revalidate();
+    	ls.repaint();
+    	ls.setSelectedIndex(0); 
     }
     public static void main(String args[]) {
         ChatClient client = new ChatClient();
@@ -101,9 +108,14 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
     }
     private void send() {
         String toSend = msgWindow.getText();
-        Message msg = new Message(toSend, ck.getLocalPort(), users.get(ls.getLeadSelectionIndex()).toString());
-        ck.sendMessage(toSend);
-        lastMsg = toSend;
+        if(!ck.nick.equals(users.get(ls.getLeadSelectionIndex()).toString())) {
+//        	Message msg = new Message(toSend, ck.nick, users.get(ls.getLeadSelectionIndex()).toString());
+        	String msg = "/" + users.get(ls.getLeadSelectionIndex()).toString() 
+        				+ " /" + ck.nick
+        				+ " /" + toSend;
+        	ck.sendMessage(msg);
+        	lastMsg = toSend;
+        }
         msgWindow.setText("");
     }
     public void keyPressed(KeyEvent e) {

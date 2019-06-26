@@ -1,14 +1,13 @@
 package com.cncd.ch04.client;
 
 public class Message {
-	String msg;
-	int fromPort;
-	int toPort;
-	String toPor;
+	String message;
+	String fromPort;
+	String toPort;
 	
-	Message(String message, int fp, String tp){
-		msg = message;
+	Message(String msg, String fp, String tp){
+		message = msg;
 		fromPort = fp;
-		toPor = tp;
+		toPort = tp;
 	}
 }

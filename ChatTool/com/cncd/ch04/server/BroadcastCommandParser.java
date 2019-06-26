@@ -89,9 +89,9 @@ public class BroadcastCommandParser implements CommandParser {
     }
     private  void users(ConnectedClient cc) {
         LinkedList users = (LinkedList)((cc.getConnectionKeeper().users()).clone());
-        String msg = "Current Connected Users: <br>";
+        String msg = "/refresh";
         while(users.size()>0)
-            msg += "*" + ((ConnectedClient)(users.removeFirst())).getNick() + "<br>";
+            msg += ((ConnectedClient)(users.removeFirst())).getNick() + " ";
         cc.sendMessage(msg);
     }
     private  void setNick(ConnectedClient cc, String str) {

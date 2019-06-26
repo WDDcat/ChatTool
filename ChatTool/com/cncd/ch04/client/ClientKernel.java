@@ -21,7 +21,6 @@ public class ClientKernel {
     /** Creates a new instance of ClientKernel */
     public ClientKernel(String server, int port) {
         this.port = port;
-        nick = "" + port;
         serverAd = server;
         clients = new LinkedList();
         connect();
@@ -42,6 +41,7 @@ public class ClientKernel {
         return port;
     }
     public boolean setNick(String nick) {
+    	this.nick = nick;
         sendMessage("" + ClientKernel.COMMAND + "nick " + nick);
         return true;
     }
@@ -78,6 +78,15 @@ public class ClientKernel {
         for(int i=0;i<client.length;i++)
             ((ChatClient)(client[i])).addMsg(str);
     }
+    
+    public synchronized void refreshUsers(ArrayList<String> str) {
+        Object[] client = clients.toArray();
+        for(int i=0;i<client.length;i++) {
+//        	System.out.println("i am in" + i);
+            ((ChatClient)(client[i])).refreshUsers(str);
+        }
+    }
+    
     public boolean isConnected() {
         return isConnected;
     }
@@ -154,7 +163,33 @@ class ClientMsgListener extends Thread{
                     while( (c=dataIn.read()) != ClientKernel.MSGENDCHAR) {
                         strBuff.append((char)c);
                     }
-                    ck.storeMsg("" + strBuff.toString());
+                    if(strBuff.toString().substring(1,8).equals("refresh")) {
+                    	ArrayList<String> list = new ArrayList<>();
+                    	String buffer = strBuff.toString().substring(8);
+//                    	System.out.println("buffer=" + buffer);
+                    	String name = "";
+                    	while(buffer.length() > 0) {
+                    		if(buffer.charAt(0) == ' ') {
+                    			list.add(name);
+//                            	System.out.println("list.add\"" + name + "\"\n");
+                    			name = "";
+                    		}
+                    		else {
+                    			name += buffer.charAt(0);
+                    		}
+                    		buffer = buffer.substring(1);
+                    	}
+                    	ck.refreshUsers(list);
+                    }
+                    else {
+                    	String buffer = strBuff.substring(1);
+                    	String receiver = "";
+                    	while(buffer.charAt(0) != ' ') {
+                    		receiver += buffer.charAt(0);
+                    	}
+                    	if(receiver.equals(ck.nick))
+                    		ck.storeMsg("" + strBuff.toString());
+                    }
                 }
                 dataIn.close();
                 buffIn.close();
