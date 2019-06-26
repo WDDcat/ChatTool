@@ -60,19 +60,20 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
         users = new Vector<>();
         ls = new JList(users);
         ls.setBorder(BorderFactory.createTitledBorder("Users"));
+        users.add("ChatServer");
+        ls.setSelectedIndex(0);
         centerPanel.add(ls);
+        ls.addFocusListener(this);
         historyWindow = new ClientHistory();
         sc = new JScrollPane(historyWindow);
         sc.setAutoscrolls(true);
         centerPanel.add(sc);
         this.add(centerPanel, BorderLayout.CENTER);
-        users.add("Chat Server");
-        ls.setSelectedIndex(0); 
     }
     
     public void refreshUsers(ArrayList<String> u) {
     	users.clear();
-    	users.add("Chat Server");
+    	users.add("ChatServer");
     	for(int i = 0; i < u.size(); i++) {
     		users.add(u.get(i));
     	}
@@ -91,7 +92,13 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
         client.msgWindow.requestFocus();
     }
     public void addMsg(String str) {
-        historyWindow.addText(str);
+    	String[] spliter = str.split(":");
+    	if(spliter[0].equals(ck.nick)) {
+    		historyWindow.addText("<font color=\"#00ff00\">" + spliter[1]);
+    	}
+    	else {
+    		historyWindow.addText(str);
+    	}
     }
     private void connect() {
         try {
@@ -100,7 +107,7 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
             ck.setNick(txtNick.getText());
             if(ck.isConnected()) {
                 ck.addClient(this);
-                addMsg("<font color=\"#00ff00\">connected! Local Port:" + ck.getLocalPort() + "</font>");
+                addMsg("<font color=\"#0000ff\">connected! Local Port:" + ck.getLocalPort() + "</font>");
             } else {
                 addMsg("<font color=\"#ff0000\">connect failed£¡</font>");
             }
@@ -110,9 +117,7 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
         String toSend = msgWindow.getText();
         if(!ck.nick.equals(users.get(ls.getLeadSelectionIndex()).toString())) {
 //        	Message msg = new Message(toSend, ck.nick, users.get(ls.getLeadSelectionIndex()).toString());
-        	String msg = "/" + users.get(ls.getLeadSelectionIndex()).toString() 
-        				+ " /" + ck.nick
-        				+ " /" + toSend;
+        	String msg = toSend + " /" + users.get(ls.getLeadSelectionIndex()).toString();
         	ck.sendMessage(msg);
         	lastMsg = toSend;
         }
@@ -139,6 +144,7 @@ public class ChatClient extends JFrame implements KeyListener, ActionListener, F
         if(e.getSource()==txtHost && txtHost.getText().equals(ChatClient.serverText)) txtHost.setText("");
         if(e.getSource()==txtPort && txtPort.getText().equals(ChatClient.portText)) txtPort.setText("");
         if(e.getSource()==txtNick && txtNick.getText().equals(ChatClient.nickText)) txtNick.setText("");
+        if(e.getSource()==ls) sc.removeAll();
     }
     public void focusLost(FocusEvent e) {
        if(e.getSource()==txtPort && txtPort.getText().equals("")) txtPort.setText(ChatClient.portText);

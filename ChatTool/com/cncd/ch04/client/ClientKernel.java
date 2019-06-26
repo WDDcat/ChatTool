@@ -163,7 +163,7 @@ class ClientMsgListener extends Thread{
                     while( (c=dataIn.read()) != ClientKernel.MSGENDCHAR) {
                         strBuff.append((char)c);
                     }
-                    if(strBuff.toString().substring(1,8).equals("refresh")) {
+                    if(strBuff.toString().charAt(0) == '/' && strBuff.toString().substring(1,8).equals("refresh")) {
                     	ArrayList<String> list = new ArrayList<>();
                     	String buffer = strBuff.toString().substring(8);
 //                    	System.out.println("buffer=" + buffer);
@@ -182,13 +182,13 @@ class ClientMsgListener extends Thread{
                     	ck.refreshUsers(list);
                     }
                     else {
-                    	String buffer = strBuff.substring(1);
-                    	String receiver = "";
-                    	while(buffer.charAt(0) != ' ') {
-                    		receiver += buffer.charAt(0);
-                    	}
-                    	if(receiver.equals(ck.nick))
-                    		ck.storeMsg("" + strBuff.toString());
+                    	String buffer = strBuff.toString();
+                    	System.out.println("buff = " + strBuff.toString());
+                    	String[] split = buffer.split("/");
+                    	String receiver = split[split.length - 1];
+                    	System.out.println("receiver = " + receiver);
+                    	if(receiver.equals(ck.nick) || receiver.equals("ChatServer"))
+                    		ck.storeMsg(split[0]);
                     }
                 }
                 dataIn.close();
