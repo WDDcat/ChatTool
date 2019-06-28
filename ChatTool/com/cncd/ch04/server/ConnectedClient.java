@@ -86,25 +86,21 @@ class ServerMsgSender extends Thread {
     }
     public void run() {
         try {
-            DataOutputStream dataOut = new DataOutputStream(sock.getOutputStream());
+            PrintWriter output = new PrintWriter(new OutputStreamWriter(sock.getOutputStream(),"UTF-8"),true);
             while(running) {
                 while(msgList.size()>0) {
                     String toSend = (String)(msgList.removeFirst());
-                    dataOut.writeBytes("" + toSend + MainServer.MSGENDCHAR);
+                    output.println(toSend + MainServer.MSGENDCHAR);
+                    System.out.println(">>Ssend:" + toSend + MainServer.MSGENDCHAR);
                     if(cc.printMsg) System.out.println("MsgSender.run: Sending: " + toSend);
                     sleep(10);
                 }
+                
+                
                 if(num != cc.getConnectionKeeper().users().size()) flag = 0;
                 if(flag < 3) {
-//                	String mm;
                 	cc.runCommand("" + ClientKernel.COMMAND + "users");
                 	flag++;
-//                	for(int i=0;i<cc.getConnectionKeeper().friends.size();i++) {
-//                		for(int j=0;j<cc.getConnectionKeeper().friends.get(i).friend.size();j++) {
-//                			mm = cc.getConnectionKeeper().friends.get(i).nick + ":friendApply:" + cc.getConnectionKeeper().friends.get(i).friend.get(j);
-//                			for(int k=0;)
-//                		}
-//                	}
                 }
                 if(flag == 2) {
                 	cc.getConnectionKeeper().sendFriend((ConnectedClient)cc.getConnectionKeeper().users().getLast());
@@ -145,19 +141,21 @@ class ServerMsgListener extends Thread {
     }
     public void run() {
         try {
-            BufferedInputStream buffIn = new BufferedInputStream(sock.getInputStream());
-            DataInputStream dataIn = new DataInputStream(buffIn);
+//            BufferedInputStream buffIn = new BufferedInputStream(sock.getInputStream());
+//            DataInputStream dataIn = new DataInputStream(buffIn);
+            BufferedReader input = new BufferedReader(new InputStreamReader(sock.getInputStream(), "UTF-8"));
             while(running) {
                 int c;
                 boolean didRun = false;
                 boolean isCommand = false;
-                StringBuffer strBuff = new StringBuffer();
                 sleep(10);
-                while( (c=dataIn.read()) != 0xff) {
-                    strBuff.append((char)c);
-                    if(!didRun) didRun=true;
-                    if(c==0xFD) isCommand = true;
+                String strBuff = input.readLine();
+                if(strBuff.length() > 0) {
+                	if(!didRun) didRun = true;
+                	if(strBuff.charAt(0) == 0xFD)	isCommand = true;
+                	strBuff = strBuff.substring(0, strBuff.length() - 1);
                 }
+                System.out.println(">>Sreceive:" + strBuff);
                 if(cc.verifyedCount>0 && !cc.verifyedBoolean && !isCommand) {
                     cc.verifyedCount--;
                     if(cc.verifyedCount==1) {

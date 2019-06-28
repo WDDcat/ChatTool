@@ -137,19 +137,14 @@ class ClientMsgSender extends Thread {
     }
     public void run() {
         try {
-            DataOutputStream dataOut = new DataOutputStream(s.getOutputStream());
+            PrintWriter output = new PrintWriter(new OutputStreamWriter(s.getOutputStream(), "UTF-8"), true);
             while(running) {
-                while(msgList.size()>0) {
-                    String msg = ((String)(msgList.removeFirst()));
-                    char[] data = msg.toCharArray();
-                    for(int i=0;i<data.length;i++) dataOut.write((int)data[i]);
-                    dataOut.write(ClientKernel.MSGENDCHAR);
-                }
-                sleep(10);
+            	while(msgList.size()>0) {
+            		String msg = ((String)(msgList.removeFirst()));
+            		output.println(msg + ClientKernel.MSGENDCHAR);
+            	}
+            	sleep(10);
             }
-            dataOut.write(ClientKernel.EXIT);
-            dataOut.close();
-            stop();
         } catch(Exception ioe) {
             ioe.printStackTrace();
         } finally {
@@ -175,14 +170,13 @@ class ClientMsgListener extends Thread{
     }
     public void run() {
         try {
-                BufferedInputStream buffIn = new BufferedInputStream(s.getInputStream());
-                DataInputStream dataIn = new DataInputStream(buffIn);
+        		BufferedReader input = new BufferedReader(new InputStreamReader(s.getInputStream(), "UTF-8"));
                 while(running) {
-                    StringBuffer strBuff = new StringBuffer();
-                    int c;
-                    while( (c=dataIn.read()) != ClientKernel.MSGENDCHAR) {
-                        strBuff.append((char)c);
-                    }
+                	String strBuff = input.readLine();
+                	if(strBuff.length() > 0) {
+                		strBuff = strBuff.substring(0, strBuff.length() - 1);
+                	}
+                    
                     String friendApp = strBuff.toString();
                     String[] a = friendApp.split(":");
                     if(a.length == 3 && a[1].equals("friendApply") && a[2].equals(ck.nick)) {
@@ -198,7 +192,6 @@ class ClientMsgListener extends Thread{
                     		if(buffer.charAt(0) == ' ') {
                     			list.add(name);
                     			ck.AllUsers.add(name);
-//                            	System.out.println("list.add\"" + name + "\"\n");
                     			name = "";
                     		}
                     		else {
@@ -210,16 +203,12 @@ class ClientMsgListener extends Thread{
                     }
                     else {
                     	String buffer = strBuff.toString();
-                    	System.out.println("buff = " + strBuff.toString());
                     	String[] split = buffer.split("/");
                     	String receiver = split[split.length - 1];
-                    	System.out.println("receiver = " + receiver);
                     	if(receiver.equals(ck.nick) || receiver.equals("ChatServer"))
                     		ck.storeMsg(split[0]);
                     }
                 }
-                dataIn.close();
-                buffIn.close();
                 stop();
         } catch(IOException ioe) {
             ioe.printStackTrace();
